@@ -1,14 +1,47 @@
 <html>
     <head><title>Look Inna Book</title></head>
-    <script src = "../script.js"></script>
+    <script src = "../client.js"></script>
     <body>
         Username:
         <input type = "textbox" id = "username" size = "20">
     </br>
         Password:
         <input type = "textbox" id = "password" size = "20">
+    
+        <button type = "button" onclick = "createAccount()">Create Account</button>
+    </br>
+        <input type = "textbox" id = "search" placeholder = "Enter search query!" size = "40">
+        <select id = "searchType">
+            <option value = "title">Title</option>
+            <option value = "author">Author</option>
+            <option value = "publisher">Publisher</option>
+            <option value = "ISBN">ISBN</option>
+        </select>
+        <select id = "genre">
+            <option value = "">Genre</option>
+            <option value = "Historical Fiction">Historical Fiction</option>
+            <option value = "Crime">Crime</option>
+            <option value = "Suspense">Suspense</option>
+            <option value = "Science Fiction">Science Fiction</option>
+            <option value = "Chick lit">Chick lit</option>
+            <option value = "Children">Children</option>
+            <option value = "Romance">Romance</option>
+            <option value = "Horror">Horror</option>
+            <option value = "Mystery">Mystery</option>
+            <option value = "Fantasy">Fantasy</option>
+            <option value = "Drama">Fiction</option>
+            <option value = "Thriller">Anthology</option>
+            <option value = "Satire">Satire</option>
+            <option value = "Graphic Novel">Graphic Novel</option>
+            <option value = "Action">Action</option>
+            <option value = "Adventure">Adventure</option>
+            <option value = "Paranormal Romance">Paranormal Romance</option>
+            <option value = "Non-Fiction">Non-Fiction</option>
+            <option value = "Short-Story">Short-Story</option>
+        </select>
+        <button type = "button" onclick = "search()">Search</button>
     </body>
 
-    <button type = "button" onclick = "createAccount()">Create Account</button>
-    <button type = "button" onclick = "logIn()">Log In</button>
+    <!-- books generated from query to be added-->
+    <div id = "books"></div>
 </html>

@@ -22,9 +22,14 @@ app.get('/', (req, res) =>{
     res.sendFile(path.join(__dirname, 'public/views/index.html'))
 })
 
+//Account endpoints
 app.post('/createAccount', createAccount)
 app.post('/logIn', logIn)
 
+//Book endpoints
+app.get('/searchBooks/:searchQuery/:searchType/:genre?', searchBooks)
+
+//Index Functions
 function createAccount(req, res){
     //check if username already exists
     const query = {
@@ -72,6 +77,89 @@ function logIn(req, res){
     })
 }
 
+//Customer Page functions
+function searchBooks(req, res){
+    let query
+    console.log(req.params)
+    //if genre selected:
+    if (req.params.genre){
+        //search based on search type
+        if (req.params.searchType == 'title'){
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where title ilike $1 and genre = $2',
+                values: ['%' + req.params.searchQuery + '%', req.params.genre]
+            }
+        }   else if (req.params.searchType == 'publisher'){
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where publisher_name ilike $1 and genre = $2',
+                values: ['%' + req.params.searchQuery + '%', req.params.genre]
+            }      
+        }   else if (req.params.searchType == 'author'){
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where author ilike $1 and genre = $2',
+                values: ['%' + req.params.searchQuery + '%', req.params.genre]
+            }
+        }   else{
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where ISBN = $1 and genre = $2',
+                values: [req.params.searchQuery, req.params.genre]
+            }
+        }
+    }   else{
+        if (req.params.searchType == 'title'){
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where title ilike $1',
+                values: ['%' + req.params.searchQuery + '%']
+            }
+        }   else if (req.params.searchType == 'publisher'){
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where publisher_name ilike $1',
+                values: ['%' + req.params.searchQuery + '%']
+            }      
+        }   else if (req.params.searchType == 'author'){
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where author ilike $1',
+                values: ['%' + req.params.searchQuery + '%']
+            }
+        }   else{
+            query = {
+                name: 'search-books',
+                text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                      'from book ' +
+                      'where ISBN = $1',
+                values: [req.params.searchQuery]
+            }
+        }
+    }
+    console.log(query)
 
+    pool.query(query, (err, result)=>{
+        if (err) throw err
+        console.log(result.rows)
+        res.status(200).send(result.rows)
+    })
+    
+}
 app.listen(port)
 console.log("Server listening on port 3000")
