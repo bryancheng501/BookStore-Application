@@ -24,10 +24,11 @@ app.get('/', (req, res) =>{
 
 //Account endpoints
 app.post('/createAccount', createAccount)
-app.post('/logIn', logIn)
+//app.post('/logIn', logIn)
 
 //Book endpoints
 app.get('/searchBooks/:searchQuery/:searchType/:genre?', searchBooks)
+app.post('/checkoutBooks', validateUser, checkoutBooks)
 
 //Index Functions
 function createAccount(req, res){
@@ -58,6 +59,9 @@ function createAccount(req, res){
     })
 }
 
+/*
+login stuff -- not using for now
+
 function logIn(req, res){
     //check if username already exists
     const query = {
@@ -76,11 +80,11 @@ function logIn(req, res){
         }
     })
 }
+*/
 
 //Customer Page functions
 function searchBooks(req, res){
     let query
-    console.log(req.params)
     //if genre selected:
     if (req.params.genre){
         //search based on search type
@@ -152,14 +156,53 @@ function searchBooks(req, res){
             }
         }
     }
-    console.log(query)
 
     pool.query(query, (err, result)=>{
         if (err) throw err
-        console.log(result.rows)
         res.status(200).send(result.rows)
     })
-    
 }
+
+
+function validateUser(req, res, next){
+    const query = {
+        name: 'login',
+        text: 'select * from account where username = $1 and password = $2',
+        values: [req.body.username, req.body.password]
+    }
+
+    pool.query(query, (err, result) =>{
+        //console.log(result.rows);
+        if (err) throw err;
+        if (!result.rows[0]){
+            res.status(200).send({loggedIn: false})
+        }
+    })
+
+    next()
+}
+
+function checkoutBooks(req, res){
+    let books = req.body.books 
+    console.log(books)
+
+    //insert all books into db
+    for (let i = 0; i < books.length; i++){
+        const query = {
+            name: 'checkout-books',
+            text: 'insert into checkout_basket(username, ISBN) ' +
+                  'values($1, $2)',
+            values: [req.body.username, books[i]]
+        }
+        pool.query(query, (err, result)=>{
+            if (err) throw err
+        })
+        console.log(i);
+    }
+
+    res.status(200).send({success : true})
+}
+
+
 app.listen(port)
 console.log("Server listening on port 3000")
