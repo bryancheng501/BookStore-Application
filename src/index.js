@@ -26,9 +26,13 @@ app.get('/', (req, res) =>{
 app.post('/createAccount', createAccount)
 //app.post('/logIn', logIn)
 
-//Book endpoints
+//Checking stuff out endpoints
 app.get('/searchBooks/:searchQuery/:searchType/:genre?', searchBooks)
 app.post('/checkoutBooks', validateUser, checkoutBooks)
+
+//Placing/reviewing order endpoints
+app.get('/reviewOrder/:username/:password', reviewOrder)
+app.post('/placeOrder', validateUser)
 
 //Index Functions
 function createAccount(req, res){
@@ -83,6 +87,8 @@ function logIn(req, res){
 */
 
 //Customer Page functions
+
+//search books based on queries
 function searchBooks(req, res){
     let query
     //if genre selected:
@@ -163,7 +169,7 @@ function searchBooks(req, res){
     })
 }
 
-
+//check if valid username/password
 function validateUser(req, res, next){
     const query = {
         name: 'login',
@@ -182,6 +188,7 @@ function validateUser(req, res, next){
     next()
 }
 
+//checkout books selected
 function checkoutBooks(req, res){
     let books = req.body.books 
     console.log(books)
@@ -197,12 +204,67 @@ function checkoutBooks(req, res){
         pool.query(query, (err, result)=>{
             if (err) throw err
         })
-        console.log(i);
     }
-
     res.status(200).send({success : true})
 }
 
+function reviewOrder(req, res){
+    let username = req.params.username 
+    let password = req.params.password 
+
+    const query = {
+        name: 'login',
+        text: 'select * from account where username = $1 and password = $2',
+        values: [username, password]
+    }
+
+    pool.query(query, (err, result) =>{
+        if (err) throw err;
+        console.log('valid acc')
+        if (!result.rows[0]){
+            res.status(200).send({loggedIn: false})
+        }
+
+        const query = {
+            name: 'review-order',
+            text: 'select ISBN from checkout_basket where username = $1',
+            values: [username]
+        }
+
+        pool.query(query, (err, result) =>{
+            if (err) throw err;
+            console.log('some books found')
+            if (!result.rows[0]){
+                res.status(200).send({emptyOrder: true})
+            }
+
+            let isbnVals = []
+            for (let i = 0; i < result.rows.length; i++){
+                isbnVals.push(result.rows[i].isbn)
+            }
+
+            let books = []
+
+            for (let i = 0; i < isbnVals.length; i++){
+                const query = {
+                    name: 'get-basket',
+                    text: 'select ISBN, publisher_name, title, author, genre, num_pages, price ' +
+                          'from book ' +
+                          'where ISBN = $1',
+                    values: [isbnVals[i]]
+                }
+    
+                pool.query(query, (err, result) =>{
+                    if (err) throw err;
+                    books.push(result.rows[0])
+                    console.log(books)
+                })
+            } 
+            
+            res.status(200).send({loggedIn : true, 'books' : books})
+        })
+    })
+}
 
 app.listen(port)
 console.log("Server listening on port 3000")

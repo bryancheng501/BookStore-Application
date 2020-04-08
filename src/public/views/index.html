@@ -42,9 +42,25 @@
         <button type = "button" onclick = "search()">Search</button>
     </body>
 
-    <div id = 'checkoutDiv' style = "display:none;">
-    <button id = "checkoutBooks" onclick = "checkoutBooks()">Checkout</button>
+    
+
+    <!-- books added to checkout basket-->
+    <div id = "orderDiv" style = "display:none;">
+        Shipping Address:
+        <input type = "textbox" id = "sAddress"></input>
+    </br>
+        Billing Address
+        <input type = "textbox" id = "bAddress"></input>
+        <div id = "booksInOrder"></div>
+
+        <button onclick = "placeOrder()">Place Order</button>
     </div>
+
+    <div id = 'checkoutDiv' style = "display:none;">
+        <button id = "checkoutBooks" onclick = "checkoutBooks()">Checkout</button>
+        <button id = "reviewOrder" onclick = "reviewOrder()">Review Order</button>
+    </div>
+
     <!-- books generated from query to be added-->
     <div id = "books"></div>
 </html>

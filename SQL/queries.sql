@@ -34,3 +34,13 @@ where ISBN = 'ISBN' and genre = 'genre'
 
 --NOTE: above 3 queries can search for books based off title, publisher, author
 --      or ISBN only (without genre) by simply removing 'and genre = 'genre''
+
+
+--Checking out books by ISBN
+insert into checkout_basket(username, ISBN)
+    values('username', 'ISBN')
+
+--Getting all books in checkout basket
+select ISBN 
+from checkout_basket 
+where username = 'username'
