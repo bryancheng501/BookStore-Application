@@ -3,19 +3,30 @@ const bodyParser = require('body-parser')
 const app = express()
 const path = require('path')
 const port = 3000
+const promise = require('bluebird')
+
+const initOptions = {
+    promiseLib: promise
+}
+
+const pgp = require('pg-promise')(initOptions);
 
 app.use(bodyParser.json())
 app.use(express.static(__dirname + '/public'))
 
 //db stuff
 const Pool = require('pg').Pool
-const pool = new Pool({
+
+const connectionInfo = {
     user: 'postgres',
     host: 'localhost',
     database: 'Library',
     password: 'postgres',
     port: 5433,
-})
+}
+const pool = new Pool(connectionInfo)
+
+const db = pgp(connectionInfo)
 
 //endpoints:
 app.get('/', (req, res) =>{
@@ -32,7 +43,7 @@ app.post('/checkoutBooks', validateUser, checkoutBooks)
 
 //Placing/reviewing order endpoints
 app.get('/reviewOrder/:username/:password', reviewOrder)
-app.post('/placeOrder', validateUser)
+app.post('/placeOrder', validateUser, placeOrder)
 
 //Index Functions
 function createAccount(req, res){
@@ -205,10 +216,11 @@ function checkoutBooks(req, res){
             if (err) throw err
         })
     }
+
     res.status(200).send({success : true})
 }
 
-function reviewOrder(req, res){
+function reviewOrder(req, res, next){
     let username = req.params.username 
     let password = req.params.password 
 
@@ -217,6 +229,8 @@ function reviewOrder(req, res){
         text: 'select * from account where username = $1 and password = $2',
         values: [username, password]
     }
+
+    req.body.books = []
 
     pool.query(query, (err, result) =>{
         if (err) throw err;
@@ -243,7 +257,7 @@ function reviewOrder(req, res){
                 isbnVals.push(result.rows[i].isbn)
             }
 
-            let books = []
+            
 
             for (let i = 0; i < isbnVals.length; i++){
                 const query = {
@@ -256,14 +270,32 @@ function reviewOrder(req, res){
     
                 pool.query(query, (err, result) =>{
                     if (err) throw err;
-                    books.push(result.rows[0])
-                    console.log(books)
+                    req.body.books.push(result.rows[0])
+                    console.log(req.body.books)
                 })
-            } 
+            }
+            //this is awful but idk how to use pg-promise
+            setTimeout(()=>{
+                res.status(200).send({loggedIn: true, 'books': req.body.books})
+            }, 2000)
             
-            res.status(200).send({loggedIn : true, 'books' : books})
+            
         })
     })
+}
+
+//placing the order
+function placeOrder(req, res){
+    let id = Math.floor(Math.random() * 1000000000)
+    const date = new Date()
+    let year = date.getFullYear()
+    let month = date.getMonth
+
+    const query = {
+        name: 'place-order',
+        text: 'insert into placed_order(order_number, )'
+    }
+
 }
 
 app.listen(port)
